@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GFI · ERP Implementation</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: #f4f6f9; color: #222; font-size: 12px; display: flex; flex-direction: column; }
+  .sticky-header { flex-shrink: 0; z-index: 100; }
+  .header { background: #003E45; color: white; padding: 18px 24px 12px; }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+  .header p { font-size: 11px; color: #aab; margin-top: 2px; }
+  .team-bar { background: #005963; color: #ccd; padding: 8px 24px; font-size: 11px; }
+  .team-bar strong { color: white; }
+  .color-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 24px; background: #f0f2f7; border-bottom: 1px solid #dde; font-size: 10.5px; align-items: center; }
+  .color-legend span { display: flex; align-items: center; gap: 5px; }
+  .color-legend .dot { width: 12px; height: 12px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+  .badge-legend { display: flex; flex-wrap: wrap; gap: 5px 10px; padding: 7px 24px; background: #f7f8fc; border-bottom: 1px solid #dde; font-size: 10px; align-items: center; }
+  .badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-weight: 700; font-size: 9.5px; }
+  .badge.bright { background: #fff; color: #1a2744; border: 1px solid #1a2744; }
+  .hint { font-size: 10px; color: #889; padding: 5px 24px; font-style: italic; background: #f7f8fc; border-bottom: 1px solid #dde; flex-shrink: 0; }
+  .gantt-wrap { flex: 1; overflow: auto; }
+  table { border-collapse: collapse; min-width: 700px; width: 100%; table-layout: fixed; }
+  .col-task { width: 220px; }
+  .col-period { width: calc((100% - 220px) / 7); }
+  thead tr.yr th { background: #003E45; color: white; text-align: center; font-size: 11px; padding: 5px 2px; position: sticky; top: 0; z-index: 50; }
+  thead tr.period th { background: #005963; color: #cce; text-align: center; font-size: 10px; padding: 3px 2px; position: sticky; top: 27px; z-index: 50; }
+  thead tr.period th.past-col { background: #444; color: #aaa; }
+  .task-cell { padding: 3px 8px; font-size: 10.5px; color: #334; background: white; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .task-cell.phase { font-weight: 700; color: #003E45; background: #eef0f8; }
+  .task-cell.sub { padding-left: 18px; }
+  .bar-cell { padding: 2px; vertical-align: middle; background: white; position: relative; border: 1px solid #dde; }
+  .bar-cell.past-col { background: #f7f7f7; }
+  .bar { height: 16px; border-radius: 3px; display: block; line-height: 16px; text-align: right; padding-right: 4px; transition: filter 0.15s; width: 100%; overflow: hidden; }
+  .bar:hover { filter: brightness(1.12); }
+  .bar-badges { display: inline; }
+  .bb { font-size: 7.5px; font-weight: 700; padding: 0 2px; border-radius: 2px; line-height: 11px; }
+  .bb.lead { background: rgba(255,255,255,0.9); color: #1a2744; }
+  .bb.key  { background: rgba(255,255,255,0.35); color: rgba(255,255,255,0.85); }
+  .c-pm    { background: #007C89; }
+  .c-tl    { background: #003E45; }
+  .c-ft    { background: #E1BF18; }
+  .c-sa    { background: #D6EDEF; }
+  .c-sa-tl { background: #56ADB4; }
+  .c-pm-tl { background: #005963; }
+  .c-sa-ft { background: #B18D31; }
+  .c-pm-ft { background: #FADE00; }
+  .c-pm-al { background: #FBEB66; }
+  .c-pm-sa { background: #ACDBDF; }
+  tr:hover .bar-cell { background: #f0f4ff; }
+  tr.phase-row td { background: #eef0f8 !important; }
+  tr.section-row td { background: #f5f6fb !important; }
+  .tooltip { display: none; position: fixed; z-index: 300; background: #003E45; color: white; border-radius: 5px; padding: 8px 11px; font-size: 10.5px; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,0.25); line-height: 1.7; white-space: nowrap; }
+  .tooltip .t-lead { color: #ACDBDF; font-weight: 600; }
+  .tooltip .t-key  { color: #9DA; }
+</style>
+</head>
+<body>
+
+<div class="sticky-header">
+  <div class="header">
+    <h1>GFI · ERP IMPLEMENTATION</h1>
+    <p>Illustrative Gantt Chart &nbsp;·&nbsp; A detailed Gantt Chart developed by Caravel can be reviewed separately</p>
+  </div>
+  <div class="team-bar">
+    <strong>CORE PROJECT TEAM</strong> &nbsp; Chethana B · Irina R · Julia H · Julia N · Kait G · Laura C · Laura H · Mike D
+  </div>
+  <div class="color-legend">
+    <strong style="margin-right:6px">BAR COLOR = LEAD TEAM</strong>
+    <span><span class="dot" style="background:#E1BF18"></span> Finance Team (U.S.)</span>
+    <span><span class="dot" style="background:#007C89"></span> PM Team</span>
+    <span><span class="dot" style="background:#FBEB66;border:1px solid #ccc"></span> PM Team + Affiliate Leads</span>
+    <span><span class="dot" style="background:#FADE00;border:1px solid #ccc"></span> PM Team + Finance Team (U.S.)</span>
+    <span><span class="dot" style="background:#ACDBDF;border:1px solid #bbb"></span> PM Team + Sys Admin</span>
+    <span><span class="dot" style="background:#005963"></span> PM Team + Tech Lead</span>
+    <span><span class="dot" style="background:#D6EDEF;border:1px solid #bbb"></span> Sys Admin</span>
+    <span><span class="dot" style="background:#B18D31"></span> Sys Admin + Finance Team (U.S.)</span>
+    <span><span class="dot" style="background:#56ADB4"></span> Sys Admin + Tech Lead</span>
+    <span><span class="dot" style="background:#003E45"></span> Technical Lead</span>
+  </div>
+  <div class="badge-legend">
+    <strong style="margin-right:4px">BADGES = STAKEHOLDERS &nbsp; (BRIGHT = LEAD · DIM = KEY)</strong>
+    <span class="badge bright">AE</span> All Employees &nbsp;
+    <span class="badge bright">AL</span> Affiliate Leads &nbsp;
+    <span class="badge bright">CP</span> Core Project Team &nbsp;
+    <span class="badge bright">ES</span> Exec Sponsor &nbsp;
+    <span class="badge bright">FT</span> Finance Team (U.S.) &nbsp;
+    <span class="badge bright">LT</span> Leadership Team &nbsp;
+    <span class="badge bright">MD</span> Managing Directors &nbsp;
+    <span class="badge bright">PM</span> PM Team &nbsp;
+    <span class="badge bright">SA</span> Sys Admin &nbsp;
+    <span class="badge bright">SM</span> SMEs &nbsp;
+    <span class="badge bright">TL</span> Technical Lead
+  </div>
+</div>
+<p class="hint">💡 Hover over any bar to see lead and stakeholder details.</p>
+
+<div class="gantt-wrap">
+<table>
+<thead>
+  <tr class="yr">
+    <th class="col-task" rowspan="2" style="position:sticky;top:0;left:0;z-index:60;background:#003E45;color:white;text-align:left;padding-left:8px;">PHASE / TASK</th>
+    <th class="col-period" style="background:#444;color:#aaa">2025 (past)</th>
+    <th class="col-period" colspan="3">2026</th>
+    <th class="col-period" colspan="3">2027</th>
+  </tr>
+  <tr class="period">
+    <th class="col-period past-col"></th>
+    <th class="col-period">C1</th><th class="col-period">C2</th><th class="col-period">C3</th>
+    <th class="col-period">C1</th><th class="col-period">C2</th><th class="col-period">C3</th>
+  </tr>
+</thead>
+<tbody id="gantt-body"></tbody>
+</table>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const TOTAL_COLS = 7;
+const colorClass = {
+  'pm':'c-pm','tl':'c-tl','ft':'c-ft','sa':'c-sa',
+  'sa-tl':'c-sa-tl','pm-tl':'c-pm-tl','sa-ft':'c-sa-ft',
+  'pm-ft':'c-pm-ft','pm-al':'c-pm-al','pm-sa':'c-pm-sa',
+};
+
+const tip = document.getElementById('tooltip');
+document.addEventListener('mousemove', e => { tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px'; });
+
+const tasks = [
+  ["Project Management",        false,false, 0,7, "pm",    ["PM"],        ["ES","FT","TL"]],
+  ["Change Management",         false,false, 0,7, "pm",    ["PM"],        ["AL","FT","LT","MD"]],
+  ["Discovery",                 true, false, 0,0, "",      [],            []],
+  ["Needs Assessment",          false,true,  0,1, "pm",    ["PM"],        ["CP"]],
+  ["Landscape Analysis",        false,true,  0,1, "pm",    ["PM"],        ["CP"]],
+  ["Vendor Shortlisting",       false,true,  0,1, "pm",    ["PM"],        ["CP"]],
+  ["Selection",                 true, false, 0,0, "",      [],            []],
+  ["RAPID",                     false,true,  1,1, "pm",    ["PM"],        ["CP"]],
+  ["Selection of ERP Platform", false,true,  1,1, "pm",    ["PM"],        ["CP"]],
+  ["Selection of Implementation Partner", false,true, 1,1, "pm", ["PM"],  ["CP"]],
+  ["Negotiation of Contract",   false,true,  1,1, "tl",    ["TL"],        ["ES","PM"]],
+  ["Finalization of Core & Expanded GFI Project Team", false,true, 1,1, "pm", ["PM"], ["CP","MD"]],
+  ["System Design and Development", true,false, 0,0, "",   [],            []],
+  ["Project Kickoff Call",      false,true,  1,4, "pm",    ["PM"],        ["AL","CP","SM"]],
+  ["Stakeholder Consultations", false,true,  1,4, "pm",    ["PM"],        ["AL","FT","MD","SM"]],
+  ["Chart of Accounts Redesign",false,true,  2,1, "ft",    ["FT"],        ["AL","SM","TL"]],
+  ["Data Migration Scoping",    false,true,  2,1, "tl",    ["TL"],        ["AL","FT","PM"]],
+  ["Budget Solution Scoping",   false,true,  2,1, "pm",    ["PM"],        ["AL","FT","SM"]],
+  ["Development of Final Requirements", false,true, 2,1, "ft", ["FT"],    ["AL","ES","PM","TL"]],
+  ["Final Selection of Core Modules",   false,true, 2,1, "ft", ["FT"],    ["AL","ES","PM","TL"]],
+  ["Customization of Platform", false,true,  2,1, "ft",    ["FT"],        ["AL","TL"]],
+  ["Integration of Key Systems",false,true,  2,1, "ft",    ["FT"],        ["AL","TL"]],
+  ["Sandbox Testing",           false,true,  3,1, "sa-tl", ["SA","TL"],   ["AL","FT"]],
+  ["Production",                false,true,  3,4, "sa-tl", ["SA","TL"],   ["AL","FT"]],
+  ["Data Migration",            true, false, 0,0, "",      [],            []],
+  ["Data Preparation",          false,true,  3,1, "pm-tl", ["PM","TL"],   ["AL","FT"]],
+  ["Data Migration",            false,true,  3,1, "tl",    ["TL"],        ["AL","FT"]],
+  ["Testing",                   false,true,  3,1, "tl",    ["TL"],        ["AL","FT"]],
+  ["Refinement",                false,true,  3,1, "tl",    ["TL"],        ["AL","FT"]],
+  ["Rollout and Go-Live",       true, false, 0,0, "",      [],            []],
+  ["End-User Training",         false,true,  3,4, "sa-ft", ["FT","SA"],   ["AL","MD","TL"]],
+  ["GFI Staff Meeting and Celebration", false,true, 4,1, "pm-ft", ["FT","PM"], ["AE"]],
+  ["Phase 1 - U.S. Go-Live",   false,true,  4,1, "pm-ft", ["FT","PM"],   ["CP"]],
+  ["Phase 1 Affiliates (Pilot) – Go-Live", false,true, 4,2, "pm-al", ["PM","AL"], ["FT","SA"]],
+  ["Phase 2 Affiliates – Go-Live", false,true, 6,1, "pm-al", ["PM","AL"], ["FT","SA"]],
+  ["Adoption and Optimization", true, false, 0,0, "",      [],            []],
+  ["Post Go-Live Support",      false,true,  4,3, "pm-sa", ["PM","SA"],   ["AL","FT","TL"]],
+  ["System Administration",     false,true,  4,3, "sa",    ["SA"],        ["TL"]],
+];
+
+function buildBadges(leads, keys) {
+  const sortedKeys = [...keys].sort();
+  return leads.map(b=>`<span class="bb lead">${b}</span>`).join('')
+       + sortedKeys.map(b=>`<span class="bb key">${b}</span>`).join('');
+}
+
+const tbody = document.getElementById('gantt-body');
+tasks.forEach(([label,isPhase,isSub,start,span,color,leads,keys]) => {
+  const tr = document.createElement('tr');
+  if (isPhase) tr.classList.add('phase-row');
+  else if (!isSub) tr.classList.add('section-row');
+  const td0 = document.createElement('td');
+  td0.className = 'task-cell'+(isPhase?' phase':'')+(isSub?' sub':'');
+  td0.title = label; td0.textContent = label;
+  tr.appendChild(td0);
+  const end = start + span;
+  for (let c = 0; c < TOTAL_COLS; ) {
+    const td = document.createElement('td');
+    if (span > 0 && c === start) {
+      td.colSpan = span;
+      td.className = 'bar-cell'+(start===0?' past-col':'');
+      const bar = document.createElement('div');
+      bar.className = 'bar '+(colorClass[color]||'');
+      bar.style.width = '100%';
+      bar.innerHTML = `<div class="bar-badges">${buildBadges(leads,keys)}</div>`;
+      bar.onmouseenter = () => {
+        tip.innerHTML = `<strong>${label}</strong><br><span class="t-lead">Lead: ${leads.join(', ')||'—'}</span>${keys.length?`<br><span class="t-key">Key: ${[...keys].sort().join(', ')}</span>`:''}`;
+        tip.style.display = 'block';
+      };
+      bar.onmouseleave = () => tip.style.display = 'none';
+      td.appendChild(bar);
+      tr.appendChild(td);
+      c = end;
+    } else {
+      td.className = 'bar-cell'+(c===0?' past-col':'');
+      tr.appendChild(td);
+      c++;
+    }
+  }
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>
