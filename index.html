@@ -41,11 +41,11 @@
   .bb.lead { background: rgba(255,255,255,0.9); color: #1a2744; }
   .bb.key  { background: rgba(255,255,255,0.35); color: rgba(255,255,255,0.85); }
   .c-pm    { background: #007C89; }
-  .c-TA    { background: #003E45; }
+  .c-ta    { background: #003E45; }
   .c-ft    { background: #E1BF18; }
   .c-sa    { background: #D6EDEF; }
-  .c-sa-TA { background: #56ADB4; }
-  .c-pm-TA { background: #005963; }
+  .c-sa-ta { background: #56ADB4; }
+  .c-pm-ta { background: #005963; }
   .c-sa-ft { background: #B18D31; }
   .c-pm-ft { background: #FADE00; }
   .c-pm-al { background: #FBEB66; }
@@ -93,7 +93,7 @@
     <span class="badge bright">PM</span> PM Team &nbsp;
     <span class="badge bright">SA</span> Sys Admin &nbsp;
     <span class="badge bright">SM</span> SMEs &nbsp;
-    <span class="badge bright">TL</span> Technical Advisor
+    <span class="badge bright">TA</span> Technical Advisor
   </div>
 </div>
 <p class="hint">💡 Hover over any bar to see lead and stakeholder details.</p>
@@ -122,8 +122,8 @@
 <script>
 const TOTAL_COLS = 7;
 const colorClass = {
-  'pm':'c-pm','tl':'c-tl','ft':'c-ft','sa':'c-sa',
-  'sa-tl':'c-sa-tl','pm-tl':'c-pm-tl','sa-ft':'c-sa-ft',
+  'pm':'c-pm','ta':'c-ta','ft':'c-ft','sa':'c-sa',
+  'sa-ta':'c-sa-ta','pm-ta':'c-pm-ta','sa-ft':'c-sa-ft',
   'pm-ft':'c-pm-ft','pm-al':'c-pm-al','pm-sa':'c-pm-sa',
 };
 
@@ -131,7 +131,7 @@ const tip = document.getElementById('tooltip');
 document.addEventListener('mousemove', e => { tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px'; });
 
 const tasks = [
-  ["Project Management",        false,false, 0,7, "pm",    ["PM"],        ["ES","FT","TL"]],
+  ["Project Management",        false,false, 0,7, "pm",    ["PM"],        ["ES","FT","TA"]],
   ["Change Management",         false,false, 0,7, "pm",    ["PM"],        ["AL","FT","LT","MD"]],
   ["Discovery",                 true, false, 0,0, "",      [],            []],
   ["Needs Assessment",          false,true,  0,1, "pm",    ["PM"],        ["CP"]],
@@ -141,34 +141,34 @@ const tasks = [
   ["RAPID",                     false,true,  1,1, "pm",    ["PM"],        ["CP"]],
   ["Selection of ERP Platform", false,true,  1,1, "pm",    ["PM"],        ["CP"]],
   ["Selection of Implementation Partner", false,true, 1,1, "pm", ["PM"],  ["CP"]],
-  ["Negotiation of Contract",   false,true,  1,1, "tl",    ["TL"],        ["ES","PM"]],
+  ["Negotiation of Contract",   false,true,  1,1, "ta",    ["TA"],        ["ES","PM"]],
   ["Finalization of Core & Expanded GFI Project Team", false,true, 1,1, "pm", ["PM"], ["CP","MD"]],
   ["System Design and Development", true,false, 0,0, "",   [],            []],
   ["Project Kickoff Call",      false,true,  1,4, "pm",    ["PM"],        ["AL","CP","SM"]],
   ["Stakeholder Consultations", false,true,  1,4, "pm",    ["PM"],        ["AL","FT","MD","SM"]],
-  ["Chart of Accounts Redesign",false,true,  2,1, "ft",    ["FT"],        ["AL","SM","TL"]],
-  ["Data Migration Scoping",    false,true,  2,1, "tl",    ["TL"],        ["AL","FT","PM"]],
+  ["Chart of Accounts Redesign",false,true,  2,1, "ft",    ["FT"],        ["AL","SM","TA"]],
+  ["Data Migration Scoping",    false,true,  2,1, "ta",    ["TA"],        ["AL","FT","PM"]],
   ["Budget Solution Scoping",   false,true,  2,1, "pm",    ["PM"],        ["AL","FT","SM"]],
-  ["Development of Final Requirements", false,true, 2,1, "ft", ["FT"],    ["AL","ES","PM","TL"]],
-  ["Final Selection of Core Modules",   false,true, 2,1, "ft", ["FT"],    ["AL","ES","PM","TL"]],
-  ["Customization of Platform", false,true,  2,1, "ft",    ["FT"],        ["AL","TL"]],
-  ["Integration of Key Systems",false,true,  2,1, "ft",    ["FT"],        ["AL","TL"]],
-  ["Sandbox Testing",           false,true,  3,1, "sa-tl", ["SA","TL"],   ["AL","FT"]],
-  ["Production",                false,true,  3,4, "sa-tl", ["SA","TL"],   ["AL","FT"]],
+  ["Development of Final Requirements", false,true, 2,1, "ft", ["FT"],    ["AL","ES","PM","TA"]],
+  ["Final Selection of Core Modules",   false,true, 2,1, "ft", ["FT"],    ["AL","ES","PM","TA"]],
+  ["Customization of Platform", false,true,  2,1, "ft",    ["FT"],        ["AL","TA"]],
+  ["Integration of Key Systems",false,true,  2,1, "ft",    ["FT"],        ["AL","TA"]],
+  ["Sandbox Testing",           false,true,  3,1, "sa-ta", ["SA","TA"],   ["AL","FT"]],
+  ["Production",                false,true,  3,4, "sa-ta", ["SA","TA"],   ["AL","FT"]],
   ["Data Migration",            true, false, 0,0, "",      [],            []],
-  ["Data Preparation",          false,true,  3,1, "pm-tl", ["PM","TL"],   ["AL","FT"]],
-  ["Data Migration",            false,true,  3,1, "tl",    ["TL"],        ["AL","FT"]],
-  ["Testing",                   false,true,  3,1, "tl",    ["TL"],        ["AL","FT"]],
-  ["Refinement",                false,true,  3,1, "tl",    ["TL"],        ["AL","FT"]],
+  ["Data Preparation",          false,true,  3,1, "pm-ta", ["PM","TA"],   ["AL","FT"]],
+  ["Data Migration",            false,true,  3,1, "ta",    ["TA"],        ["AL","FT"]],
+  ["Testing",                   false,true,  3,1, "ta",    ["TA"],        ["AL","FT"]],
+  ["Refinement",                false,true,  3,1, "ta",    ["TA"],        ["AL","FT"]],
   ["Rollout and Go-Live",       true, false, 0,0, "",      [],            []],
-  ["End-User Training",         false,true,  3,4, "sa-ft", ["FT","SA"],   ["AL","MD","TL"]],
+  ["End-User Training",         false,true,  3,4, "sa-ft", ["FT","SA"],   ["AL","MD","TA"]],
   ["GFI Staff Meeting and Celebration", false,true, 4,1, "pm-ft", ["FT","PM"], ["AE"]],
   ["Phase 1 - U.S. Go-Live",   false,true,  4,1, "pm-ft", ["FT","PM"],   ["CP"]],
   ["Phase 1 Affiliates (Pilot) – Go-Live", false,true, 4,2, "pm-al", ["PM","AL"], ["FT","SA"]],
   ["Phase 2 Affiliates – Go-Live", false,true, 6,1, "pm-al", ["PM","AL"], ["FT","SA"]],
   ["Adoption and Optimization", true, false, 0,0, "",      [],            []],
-  ["Post Go-Live Support",      false,true,  4,3, "pm-sa", ["PM","SA"],   ["AL","FT","TL"]],
-  ["System Administration",     false,true,  4,3, "sa",    ["SA"],        ["TL"]],
+  ["Post Go-Live Support",      false,true,  4,3, "pm-sa", ["PM","SA"],   ["AL","FT","TA"]],
+  ["System Administration",     false,true,  4,3, "sa",    ["SA"],        ["TA"]],
 ];
 
 function buildBadges(leads, keys) {
